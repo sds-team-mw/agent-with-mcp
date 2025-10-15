@@ -4,7 +4,7 @@
 [![LangChain](https://img.shields.io/badge/LangChain-Latest-green.svg)](https://www.langchain.com/)
 [![SOLID](https://img.shields.io/badge/Design-SOLID-orange.svg)](https://en.wikipedia.org/wiki/SOLID)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Hits](https://hits.sh/github.com/tanminkwan/hits.svg)](https://hits.sh/github.com/tanminkwan/hits/)
+[![Hits](https://hits.sh/github.com/sds-team-mw/agent-with-mcp.svg)](https://hits.sh/github.com/sds-team-mw/agent-with-mcp/)
 
 ## 📋 개요
 
