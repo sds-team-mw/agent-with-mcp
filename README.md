@@ -32,6 +32,7 @@
   - llama2, llama3, gemma, mistral 등
 - ✅ **OpenAI**: 클라우드 LLM (API 키 필요)
   - gpt-4, gpt-3.5-turbo 등
+- ✅ **vLLM(외부 서버)**: OpenAI 호환 엔드포인트 또는 전용 `/generate` 엔드포인트
 - 🔜 **확장 가능**: Anthropic Claude, Google Gemini 등 추가 가능
 
 ## 폴더/파일 구조
@@ -42,6 +43,7 @@ project/
 │   ├─ base_llm.py         # LLM 추상 기반 클래스 (ABC)
 │   ├─ ollama.py           # Ollama LLM 구현
 │   ├─ openai_llm.py       # OpenAI LLM 구현
+│   ├─ vllm_llm.py         # vLLM LLM 구현 (외부 서버 호출)
 │   ├─ factory.py          # LLM Factory 패턴
 │   └─ example_usage.py    # 사용 예제
 ├─ agent/
@@ -122,18 +124,37 @@ streamlit run main.py
 </details>
 
 <details>
-<summary><b>Option C: 외부 vLLM 서버 사용</b></summary>
+<summary><b>Option C: 외부 vLLM 서버 사용 (URL 기반 서빙)</b></summary>
 
-**장점**: 외부 호스팅의 장점
+**장점**: 외부 호스팅의 장점, 확장/배포 용이
 
-#### 환경 설정
-```bash
-# .env 파일에 vLLM 서버 URL 설정
+#### 1) .env 사용 (권장)
+```plaintext
+# vLLM 서버 URL (예: https://your-vllm-server-url.com)
+LLM_PROVIDER=vllm
 VLLM_SERVER_URL=https://your-vllm-server-url.com
+```
 
-# Streamlit UI 실행
+#### 2) 환경변수 직접 설정
+```bash
+# Linux / macOS
+export LLM_PROVIDER='vllm'
+export VLLM_SERVER_URL='https://your-vllm-server-url.com'
+
 streamlit run main.py
 ```
+
+```powershell
+# Windows (PowerShell)
+$env:LLM_PROVIDER='vllm'
+$env:VLLM_SERVER_URL='https://your-vllm-server-url.com'
+
+streamlit run main.py
+```
+
+참고:
+- vLLM 서버가 자체서명 인증서인 경우, 코드 레벨에서 `verify=False` 설정이 필요할 수 있습니다.
+- 서버의 엔드포인트가 OpenAI 호환 베이스 URL이 아닌 전용 `/generate` 라우트를 사용하는 경우에도 `VLLM_SERVER_URL`만 올바르게 지정하면 동작합니다.
 </details>
 
 ### 3️⃣ 웹 브라우저 접속
@@ -167,14 +188,11 @@ OPENAI_API_KEY=your-openai-api-key-here
 VLLM_SERVER_URL=https://your-vllm-server-url.com
 
 # LangSmith 트레이싱 (선택)
-LANGCHAIN_TRACING_V2=true
+LANGSMITH_TRACING=true
 LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
-LANGCHAIN_API_KEY=your-langsmith-api-key-here
-LANGCHAIN_PROJECT=test7-local
-LANGSMITH_WORKSPACE_ID=your-workspace-id-here
+LANGCHAIN_API_KEY=
+LANGCHAIN_PROJECT=langchain_study
 ```
-
-> 참고: 조직 범위(org-scoped) LangSmith API 키를 사용하는 경우, `LANGSMITH_WORKSPACE_ID`가 반드시 필요합니다. 키가 작업공간 범위(workspace-scoped)가 아니라면 403 Forbidden이 발생할 수 있습니다.
 
 추가 팁:
 - UI 디버그 로그 표시를 원하면 `DEBUG_PROMPT=true`를 설정하세요. (콘솔에 프롬프트 히스토리 출력)
