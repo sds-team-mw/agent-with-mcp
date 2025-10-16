@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      # 필요 시 .env에 값이 없을 때의 기본값 제공
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - VLLM_SERVER_URL=${VLLM_SERVER_URL}
+      - LANGSMITH_TRACING=${LANGSMITH_TRACING}
+      - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
+    expose:
+      - "8501"
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.25-alpine
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+
+networks:
+  default:
+    name: agent-with-mcp-net
+    driver: bridge
+
+
