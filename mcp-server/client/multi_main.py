@@ -10,13 +10,15 @@ from langchain.tools import StructuredTool
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_tool_calling_agent, AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from dotenv import load_dotenv
 
 # utils 재사용을 위해 경로 추가
 import sys
 sys.path.append(str(Path(__file__).parent))
 from utils import print_available_tools
 
-# OPENAI 키는 환경변수 OPENAI_API_KEY로 제공하세요 (예: PowerShell → $env:OPENAI_API_KEY = 'YOUR_API_KEY')
+# .env를 로드하여 OPENAI_API_KEY / LANGSMITH 관련 환경변수를 그대로 사용합니다.
+load_dotenv()
 
 async def main() -> None:
     # openai_llm.py와 동일한 방식: 별도의 .env 로드/프록시 조작 없이 사용

@@ -6,6 +6,20 @@
 pip install -r requirements.txt
 ```
 
+### .env 예시
+```
+# OpenAI
+OPENAI_API_KEY=your_openai_key
+
+# LangSmith (둘 중 하나)
+LANGSMITH=your_langsmith_api_key
+# 또는
+LANGSMITH_API_KEY=your_langsmith_api_key
+
+# 선택: LangSmith 프로젝트명 지정
+LANGCHAIN_PROJECT=mcp-demo
+```
+
 ## 2. 실행 방법
 
 1) 서버(SSE) 독립 실행 (FastMCP)
@@ -40,8 +54,7 @@ $env:MCP_SERVERS_CONFIG = 'your_config.json'; python mcp-server/client/multi_mai
 - 제공 툴: `pay_amount(amount:int)` — 정수 금액(원) 입력으로 지불 완료 메시지를 반환합니다.
 - 멀티 서버 클라이언트(`client/multi_main.py`)는 LangChain `ChatOpenAI` 툴-콜링으로 MCP 툴을 자동 선택/호출합니다.
   - 실행 전 `OPENAI_API_KEY`가 필요합니다. 방법 중 하나:
-    - OS 환경변수로 설정(권장): PowerShell → `$env:OPENAI_API_KEY = 'sk-...'`
-    - 또는 파일 상단의 `os.environ["OPENAI_API_KEY"] = "<YOUR_OPENAI_API_KEY>"`에 직접 입력
+    - .env에 `OPENAI_API_KEY` 설정(권장). LangSmith 사용 시 `.env`에 `LANGSMITH` 또는 `LANGSMITH_API_KEY`를 넣으면 자동 적용됩니다.
 
 참고 문서: [FastMCP README](https://github.com/jlowin/fastmcp)
 
