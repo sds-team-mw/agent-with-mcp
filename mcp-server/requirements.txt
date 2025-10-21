@@ -1,2 +1,4 @@
 fastmcp
 mcp
+langgraph>=0.2.0
+pygraphviz>=1.11
