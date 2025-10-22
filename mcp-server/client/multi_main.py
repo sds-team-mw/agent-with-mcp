@@ -224,12 +224,17 @@ async def main() -> None:
         graph = workflow.compile()
         # LangGraph 그래프 시각화 저장
         try:
-            g = graph.get_graph(xray=True)
-            g.draw_png("purchase_flow.png")
-            g.draw_svg("purchase_flow.svg")
-            print("그래프 저장: purchase_flow.png / purchase_flow.svg")
+            graph_representation = graph.get_graph()
+            
+            # PNG 저장 (Mermaid 기반)
+            png_bytes = graph_representation.draw_mermaid_png()
+            with open("purchase_flow.png", "wb") as f:
+                f.write(png_bytes)
+            print("✅ 그래프 저장: purchase_flow.png")
+            
         except Exception as e:
-            print(f"그래프 시각화 실패: {e}")
+            print(f"⚠️ 그래프 시각화 실패: {e}")
+            print("(pillow, pygraphviz 등의 패키지가 필요할 수 있습니다)")
 
         # 입력 예시 (필요 시 교체)
         user_query = "돈 12345 지불해주세요."
