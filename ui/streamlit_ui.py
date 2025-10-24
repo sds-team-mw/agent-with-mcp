@@ -1,50 +1,51 @@
 """
-Streamlit UI 모듈
-환경변수를 통해 LLM 제공자를 동적으로 선택 가능
+Streamlit UI 모듈 (LangGraph + MCP 기반)
 
 SOLID 원칙:
-- 의존성 역전 원칙(DIP): 구체 클래스가 아닌 Factory를 통한 추상화 사용
-- 단일 책임 원칙(SRP): UI 표시만 담당, LLM 선택은 Factory에 위임
+- 단일 책임 원칙(SRP): UI 렌더링과 대화 흐름 호출을 분리
+- 의존성 역전 원칙(DIP): 구체 구현 대신 함수 인터페이스(run_purchase_flow_once_sync)에 의존
 """
 import os
+import sys
 import streamlit as st
-from agent.memory_agent import MemoryAgent
-from llm import LLMFactory
+from pathlib import Path
+
+# 하이픈(-)이 포함된 디렉터리(`mcp-server`)로 인해 패키지 임포트가 불가하므로 런타임에 경로 추가
+_CLIENT_DIR = Path(__file__).parents[1] / "mcp-server" / "client"
+sys.path.append(str(_CLIENT_DIR))
+from purchase_flow import run_purchase_flow_once_sync
 
 
 def run():
-    # 환경변수에서 LLM 설정 읽기 (Streamlit 세션에서도 동작)
-    provider = os.getenv('LLM_PROVIDER', 'ollama')
-    model = os.getenv('LLM_MODEL', 'gemma3n:e4b')
-    
-    # 타이틀에 현재 사용 중인 LLM 표시
-    st.title(f"🤖 Multi-LLM Chatbot")
-    st.caption(f"현재 사용 중: {provider.upper()} - {model}")
-    
-    # Agent 초기화 (세션 상태에 저장)
-    if "agent" not in st.session_state:
-        try:
-            llm = LLMFactory.create(provider=provider, model=model, temperature=0.7)
-            st.session_state["agent"] = MemoryAgent(llm.as_langchain_model())
-            st.session_state["llm_info"] = f"{llm.__class__.__name__} ({model})"
-        except Exception as e:
-            st.error(f"❌ LLM 초기화 실패: {e}")
-            st.info("💡 Ollama를 사용하는 경우 'ollama serve' 명령으로 서버를 실행하세요.")
-            st.info("💡 OpenAI를 사용하는 경우 OPENAI_API_KEY 환경변수를 설정하세요.")
-            st.stop()
-    
-    agent = st.session_state["agent"]
+    # 표시 정보
+    model_name = os.getenv("LANGGRAPH_MODEL", "gpt-4o-mini")
+    st.title("🤖 LangGraph + MCP 챗봇")
+    st.caption(f"LangGraph 모델: {model_name}")
+
+    # MCP 설정 경로 표시(선택)
+    default_cfg = str(Path(__file__).parents[1] / "mcp-server" / "mcp_servers.json")
+    mcp_config_path = os.getenv("MCP_SERVERS_CONFIG", default_cfg)
+    with st.expander("MCP 설정 정보", expanded=False):
+        st.code(mcp_config_path)
+
     if "messages" not in st.session_state:
         st.session_state["messages"] = []
+
     for msg in st.session_state["messages"]:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
+
     user_input = st.chat_input("메시지를 입력하세요...")
     if user_input:
         st.session_state["messages"].append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
-        bot_response = agent.chat(user_input)
+
+        try:
+            bot_response = run_purchase_flow_once_sync(user_input, mcp_config_path=mcp_config_path)
+        except Exception as e:
+            bot_response = f"❌ 처리 중 오류가 발생했습니다: {e}"
+
         st.session_state["messages"].append({"role": "assistant", "content": bot_response})
         with st.chat_message("assistant"):
-            st.markdown(bot_response) 
+            st.markdown(bot_response)

@@ -1,9 +1,9 @@
-## RHEL 9.2 Docker Compose 배포 가이드 (Nginx 포함)
+## RHEL 9.4 Docker Compose 배포 가이드 (Nginx 포함)
 
-이 문서는 `agent-with-mcp` 프로젝트를 RHEL 9.2 서버에서 Docker Compose와 Nginx 리버스 프록시로 배포하는 방법을 설명합니다.
+이 문서는 `agent-with-mcp` 프로젝트를 RHEL 9.4 서버에서 Docker Compose와 Nginx 리버스 프록시로 배포하는 방법을 설명합니다.
 
 ### 사전 준비
-- RHEL 9.2 서버(퍼블릭 IP)
+- RHEL 9.4 서버(퍼블릭 IP)
 - sudo 권한
 - 도메인: `chatbot.leebalso.org` (A 레코드를 서버 공인 IP로 지정)
 - 방화벽에서 80 포트 오픈
@@ -33,17 +33,17 @@ cd /opt
 sudo git clone https://github.com/sds-team-mw/agent-with-mcp.git
 cd agent-with-mcp
 
-# .env 준비
-cp openai_langsmith.env .env
-
-# .env를 열어 필요 값 설정
-<<입력 필요>>에 필요값 입력
+# .env 준비 (필수: OPENAI_API_KEY, 선택: LANGGRAPH_MODEL)
+cat > .env <<'EOF'
+OPENAI_API_KEY=sk-...your-openai-key...
+# LANGGRAPH_MODEL=gpt-4o-mini
+EOF
 ```
 
-> 본 가이드는 `openai` 또는 `vllm` 기준으로 동작합니다.
+> 본 가이드는 OpenAI API 키 기반으로 동작합니다.
 
 ### 3) Nginx 설정(HTTP)
-- 이미 `deploy/nginx/nginx.conf`가 포함되어 있으며 `app:8501`으로 프록시합니다.
+- 이미 `nginx/nginx.conf`가 포함되어 있으며 `app:8501`으로 프록시합니다.
 - WebSocket 업그레이드 헤더 포함(Streamlit 호환).
 - `server_name`은 `chatbot.leebalso.org`로 설정되어 있습니다.
 
@@ -74,7 +74,7 @@ docker compose up -d --build
 
 ### 8) 트러블슈팅
 - 502/504: `docker compose logs -f app`로 앱 상태 확인
-- 404: Nginx 설정 마운트 경로 확인(`deploy/nginx/nginx.conf`)
+- 404: Nginx 설정 마운트 경로 확인(`nginx/nginx.conf`)
 - 포트 충돌: 호스트 80 점유 확인 후 조정
 - OpenAI 오류: `OPENAI_API_KEY` 및 과금 상태 확인
 - Streamlit 포트: 프록시 뒤에서는 내부 8501 고정 유지
@@ -82,5 +82,5 @@ docker compose up -d --build
 ### 구성 요약
 - `Dockerfile`: Streamlit 앱 이미지
 - `docker-compose.yml`: `app` + `nginx`
-- `deploy/nginx/nginx.conf`: 리버스 프록시 설정(WebSocket 포함)
+- `nginx/nginx.conf`: 리버스 프록시 설정(WebSocket 포함)
 - `.env`: LLM 및 비밀키 설정
